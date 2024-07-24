@@ -4,6 +4,7 @@ import '../styles/Register.css';
 import { useNavigate, Link } from "react-router-dom";
 import NavigationBar from "./NavigationBar";
 import SideNavBtn from "./SideNavBtn";
+import { BsCloudUploadFill } from 'react-icons/bs';
 
 function Register() {
     const [category, setCategory] = useState('');
@@ -20,19 +21,16 @@ function Register() {
     const [currentDateTime, setCurrentDateTime] = useState('');
 
     useEffect(() => {
-        // 현재 날짜와 시간을 'YYYY-MM-DDTHH:mm:ss' 형식으로 설정하는 함수
         const getCurrentDateTime = () => {
             const now = new Date();
             const year = now.getFullYear();
-            const month = (now.getMonth() + 1).toString().padStart(2, '0'); // 월은 0부터 시작하므로 +1
+            const month = (now.getMonth() + 1).toString().padStart(2, '0');
             const day = now.getDate().toString().padStart(2, '0');
             const hours = now.getHours().toString().padStart(2, '0');
             const minutes = now.getMinutes().toString().padStart(2, '0');
             const seconds = now.getSeconds().toString().padStart(2, '0');
             return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
         };
-
-        // 현재 날짜와 시간 설정
         setCurrentDateTime(getCurrentDateTime());
     }, []);
 
@@ -47,7 +45,7 @@ function Register() {
     };
 
     const handleFileChange = (e) => {
-        const selectedFile = e.target.files[0];
+        const selectedFile = e.target.files ? e.target.files[0] : e.dataTransfer.files[0];
         if (selectedFile) {
             setFile(selectedFile);
             const reader = new FileReader();
@@ -73,7 +71,7 @@ function Register() {
         formDataToSend.append('file', file);
         formDataToSend.append('lostItem', JSON.stringify({
             lostName: formData.itemName,
-            date: currentDateTime, // 현재 날짜와 시간 포함
+            date: currentDateTime,
             location: formData.foundLocation,
             description: formData.postContent,
             category: formData.itemCategory
@@ -94,6 +92,16 @@ function Register() {
         }
     };
 
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move'; // 드래그 중 커서 모양을 '이동'으로 설정
+    };
+
+    const handleDrop = (e) => {
+        e.preventDefault();
+        handleFileChange(e);
+    };
+
     return (
         <div className="register">
             <div className="register-nav-container"></div>
@@ -101,7 +109,7 @@ function Register() {
             <SideNavBtn />
             <div className="lost-register-banner">
                 <div className="lost-register-banner-title">분실물 등록</div>
-                <img className="register-top-img" src="/images/testimages/intro_05.jpg"/>
+                <img className="register-top-img" src="/images/testimages/intro_05.jpg" alt="banner"/>
             </div>
             <div className="bread-crumb">
                 <div className="bread-crumb-02">
@@ -115,20 +123,26 @@ function Register() {
             </div>
 
             <div className="lost-register-upload">
-                <div className="lost-register-upload-lost-image">
-                    <div className="lost-register-upload-lost-image-frame">
-                        {!imageSrc && (
-                            <div className="lost-register-upload-lost-image-frame-text">
-                                <input
-                                    type="file"
-                                    id="file-upload"
-                                    onChange={handleFileChange}
-                                    placeholder="파일위치열기"
-                                />
-                            </div>
-                        )}
-                        {imageSrc && <img src={imageSrc} alt="Preview" id="image-preview" />}
-                    </div>
+                <div
+                    className="lost-register-upload-lost-image-frame"
+                    onDragOver={handleDragOver}
+                    onDrop={handleDrop}
+                >
+                    {!imageSrc && (
+                        <div className="lost-register-upload-lost-image-frame-text">
+                            <label htmlFor="file-upload" className="file-upload-label">
+                                <BsCloudUploadFill size={50} color="#3f51b5" />
+                                <div>파일을 업로드 해주세요.</div>
+                            </label>
+                            <input
+                                type="file"
+                                id="file-upload"
+                                onChange={handleFileChange}
+                                style={{ display: 'none' }}
+                            />
+                        </div>
+                    )}
+                    {imageSrc && <img src={imageSrc} alt="Preview" id="image-preview" />}
                 </div>
 
                 <div className="lost-register-upload-info-auto">
